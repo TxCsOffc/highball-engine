@@ -10,16 +10,18 @@ index 0458290e..0edb7a14 100644
  #include "git_sha1.h"
  
  #include "vulkan/wsi/wsi_common.h"
-@@ -993,6 +994,12 @@ kk_physical_device_init_pipeline_cache(struct kk_physical_device *pdev)
+@@ -993,6 +994,14 @@ kk_physical_device_init_pipeline_cache(struct kk_physical_device *pdev)
  
     _mesa_blake3_update(&blake3_ctx, instance->driver_build_sha,
                         sizeof(instance->driver_build_sha));
-+   /* The robustness switches change the translated shaders, so a cache written with other values must not be used. */
++   /* The robustness switches change the translated shaders, so a cache written with other values must not be used.
++    * With both off (the default) the key stays what it was, so no one's cache is rebuilt. */
 +   const uint8_t hb_robust[2] = {
 +      debug_get_bool_option("HB_KK_NO_UBO_ROBUST", false),
 +      debug_get_bool_option("HB_KK_NO_SSBO_ROBUST", false),
 +   };
-+   _mesa_blake3_update(&blake3_ctx, hb_robust, sizeof(hb_robust));
++   if (hb_robust[0] || hb_robust[1])
++      _mesa_blake3_update(&blake3_ctx, hb_robust, sizeof(hb_robust));
  
     unsigned char blake3[BLAKE3_KEY_LEN];
     _mesa_blake3_final(&blake3_ctx, blake3);
